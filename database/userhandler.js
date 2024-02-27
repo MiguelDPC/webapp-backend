@@ -1,8 +1,10 @@
 const { Pool, Client } = require('pg')
+const session = require('express-session')
 const bcrypt = require("bcrypt")
+
 const pool = new Pool({
   user: 'postgres',
-  whost: 'localhost',
+  host: 'localhost',
   database: 'companydb',
   password: 'MAdapc2023',
   port: 5432,
@@ -12,15 +14,16 @@ const pool = new Pool({
   try {
     const {rows} = await pool.query('SELECT current_user');
     const currentUser = rows[0]['current_user']
-    console.log(currentUser);
   } catch (err) {
     console.error(err)
   }
 })
 
+function grabPool(){return pool}
+
 async function hashPassword(password) {
+  console.log(password)
   const hash = await bcrypt.hash(password, 10)
-  console.log(hash);
   return hash;
 }
 
@@ -29,31 +32,48 @@ async function comparePassword(password, hash) {
   return result
 }
 
+async function sessionCallback(sessionID) {
+  const text = "SELECT sess FROM session WHERE sid = '" + sessionID + "'";
+
+  try {
+    const res = await pool.query(text)
+    return {status: '200', message: res.rows[0]["sess"]};
+  } catch (err) {
+    console.log(err);
+    return {status: '500', message: "session does not exist"};
+  }
+}
+
 async function login(username, password) {
-  const text = "SELECT password FROM builda WHERE username = '" + username +"'";
+  const text = "SELECT password FROM accounts WHERE username = '" + username +"'";
   
   try {
     const res = await pool.query(text)
-    console.log(res.rows[0]["password"])
     const result = await comparePassword(password, res.rows[0]["password"])
-    return {status: '200', message: result}
+    if(result){
+      let text = "SELECT role FROM accounts WHERE username = '" + username + "'"
+      let res = await pool.query(text)
+      console.log("Role in login: " + res.rows[0]["role"])
+      return {status: '200', message: result, role: res.rows[0]["role"]};
+     } else {
+      return {status: '200', message: result}
+     }
   } catch (err) {
     console.error(err)
-    return {status: '500', message: "User not found"}
+    return {status: '500', message: err, role: "user"}
   }
    
 }
 
-async function CreateEmployee(username, password, email, building) {
+async function CreateEmployee(username, password, email, firstname, lastname, phone, address, city, state, zip, notes, title, role, building) {
   const hashedPassword = await hashPassword(password);
-  const text = 'INSERT INTO build' + building + ' (username, password, email, building) VALUES($1, $2, $3, $4) RETURNING *'
-  const values = [username, hashedPassword, email, building]
+  const text = 'INSERT INTO accounts(username, password, email, firstname, lastname, phone, address, city, state, zip, notes, title, role, building) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *'
+  const values = [username, hashedPassword, email, firstname, lastname, phone, address, city, state, zip, notes, title, role, building]
 
   try {
-    const res = await pool.query(text, values)
-    console.log(res.rows[0])
+    const res = await pool.query(text, values) 
     return {status: '200', message: res.rows[0]};
-   } catch (err) {
+  } catch (err) {
     console.error(err)
     return {status: '500', message: err};
   }
@@ -61,3 +81,5 @@ async function CreateEmployee(username, password, email, building) {
 
 module.exports.CreateEmployee = CreateEmployee;
 module.exports.login = login;
+module.exports.grabPool = grabPool;
+module.exports.sessionCallback = sessionCallback;

@@ -22,6 +22,6 @@ Current Application is configured to run on https. To run on local host switch s
 
 Finally
 
-    -in webapp-backend run node server.js
-    -in webapp-fronted run node index.js
+    run node server.js
+    run node index.js
 

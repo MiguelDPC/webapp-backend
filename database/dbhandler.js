@@ -66,5 +66,33 @@ async function searchforusers(firstname, lastname, email, building) {
     return {status: '500', message: "No Users Found"}
   }
 }
+
+async function deleteuser(UserID) {
+  console.log("In Delete")
+  const text = "DELETE FROM accounts WHERE id = '" + UserID + "'";
+  try{
+    const res = await pool.query(text)
+    return {status: '200', message: "Action Completed"}
+  } catch (err){
+    console.log(err)
+    return {status: '500', message: "User Not Found"}
+  }
+}
+
+async function edituser(UserID, field, data) {
+  console.log("In edit")
+  const text = "UPDATE accounts SET " + field + " = '" + data + "' WHERE id = '" + UserID + "'"
+
+  try{
+    const res = await pool.query(text)
+    return {status: '200', message: "Action Completed"}
+  } catch (err){
+    console.log(err)
+    return {status: '500', message: "User Not Found"}
+  }
+}
+
+module.exports.edituser = edituser;
+module.exports.deleteuser = deleteuser;
 module.exports.searchforusers = searchforusers;
 module.exports.createBuilding = createBuilding;

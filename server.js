@@ -11,14 +11,6 @@ const pgSession = require('connect-pg-simple')(session);
 const https = require('https')
 const fs = require('fs')
 
-const key = fs.readFileSync(__dirname + '/certificate/selfsigned.key')
-const cert = fs.readFileSync(__dirname + '/certificate/sefsigned.crt')
-
-const options = {
-  key:key,
-  cert: cert
-}
-const server = https.createServer(options, app)
 
 app.use(bodyParser.json());
 app.use(cors({
@@ -39,6 +31,22 @@ app.use(session({
 
 app.post("/getsessionid", async (req, res) => {
   res.json(req.session.id);
+})
+
+app.post("/deleteuser", async (req, res) => {
+  const UserID = req.body.UserID;
+
+  response = await dbhandler.deleteuser(UserID);
+  res.json(response)
+})
+
+app.post("/edituser", async (req, res) => {
+  const UserID = req.body.UserID;
+  const field = req.body.field;
+  const data =req.body.data;
+
+  response = await dbhandler.edituser(UserID, field, data)
+  res.json(response)
 })
  
 app.post("/login", async (req, res) => {

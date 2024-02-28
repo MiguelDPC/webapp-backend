@@ -53,8 +53,11 @@ async function login(username, password) {
     if(result){
       let text = "SELECT role FROM accounts WHERE username = '" + username + "'"
       let res = await pool.query(text)
-      console.log("Role in login: " + res.rows[0]["role"])
-      return {status: '200', message: result, role: res.rows[0]["role"]};
+      let role = res.rows[0]["role"]
+      text = "SELECT building FROM accounts WHERE username = '" + username + "'"
+      res = await pool.query(text)
+      let building = res.rows[0]["building"]
+      return {status: '200', message: result, role: role, building: building};
      } else {
       return {status: '200', message: result}
      }

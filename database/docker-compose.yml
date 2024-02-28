@@ -1,0 +1,14 @@
+version: "14"
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=MAdapc2023
+      - POSTGRES_DB=companydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/14/companydb
+volumes:
+  pgdata:
